@@ -1,0 +1,5 @@
+# The engine runs on the Python 3.9+ standard library alone.
+# PyYAML is OPTIONAL — it only improves frontmatter-parsing fidelity. Without it,
+# the engine falls back to a bundled hand-rolled parser (verified to produce
+# identical output on the example vault).
+PyYAML>=6.0 ; python_version >= "3.9"

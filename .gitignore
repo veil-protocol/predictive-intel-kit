@@ -1,0 +1,11 @@
+# Your live config (copy of scoring.example.yaml) — keep it out of the repo so
+# it can hold org-specific tuning without leaking.
+config/scoring.yaml
+
+# Generated enumeration catalogs if you point --output inside the repo
+examples/*-enumeration.md
+
+__pycache__/
+*.pyc
+.venv/
+.DS_Store

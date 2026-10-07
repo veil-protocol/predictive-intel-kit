@@ -1,0 +1,98 @@
+# =============================================================================
+# scoring.yaml — the only file that encodes "what matters to MY org"
+# =============================================================================
+# Copy this to  config/scoring.yaml  and edit. The engine merges this OVER its
+# baked-in defaults (top-level keys are REPLACED, so supply a whole section when
+# you override one). Run with:  python3 engine/enumerate.py --config config/scoring.yaml
+#
+# Everything here is tunable without touching engine code. Edit, re-run, get a
+# re-ranked catalog.
+
+# --- Where your notes live, relative to the vault root -----------------------
+vault:
+  actors_dir: actors        # threat-actor cards
+  surfaces_dir: surfaces    # attack-surface / asset notes
+  recipes_dir: recipes      # single-step technique notes (recursive; phase subfolders OK)
+  campaigns_dir: campaigns  # already-authored multi-step campaigns (for overlap dedup)
+
+# --- Scoring rubric — weights MUST sum to 100 (composite is then 0-100) -------
+weights:
+  strategic_relevance:    30   # surface priority-coverage × actor relevance tier
+  actor_probability:      20   # tier-based likelihood the actor targets you
+  detection_gap:          20   # phase-span proxy for thin detection seams
+  sensitivity_exposure:   20   # regulated / crown-jewel data exposure
+  operational_simplicity: 10   # easier-to-run chain = higher attacker uptake
+
+# --- Actor relevance tier -> probability multiplier (0-1) --------------------
+tier_probability:
+  tier-1: 1.00          # names you expect to see; prioritise emulation
+  tier-2: 0.70
+  tier-3: 0.40          # default for un-tiered actors
+  tier-4: 0.10
+  reference-only: 0.05  # tracked for awareness, not expected to target you
+
+# --- Composite-score -> next-cycle priority label (highest threshold first) --
+priority_buckets:
+  - [85, P1-FLAGSHIP]   # front-of-queue emulation candidate
+  - [70, P1]
+  - [55, P2]
+  - [40, P3]            # research / doc-only this cycle
+  - [0,  DEFER]
+
+# --- Kill-chain phases (ordered DAG; first phase is the required entry) -------
+phases: [entry, establish, escalate, pivot, impact]
+
+# --- OPSEC tier -> numeric (lower = louder = easier to run/detect) -----------
+opsec_numeric:
+  burn-on-use: 0.5
+  low: 1
+  low-to-medium: 1.5
+  medium: 2
+  medium-to-high: 2.5
+  high: 3
+
+# --- Sensitivity model -------------------------------------------------------
+# PREFERRED: declare sensitivity per surface in its frontmatter, e.g.
+#     data_sensitivity: [pii, crown_jewel]
+# recognised classes: pii/sensitive/personal/regulated  and  crown_jewel/mnpi/high_value/material
+#
+# FALLBACK (used only when a surface omits data_sensitivity): substring match
+# against the surface's interface_type / id / owner_entity / filename.
+# Replace these examples with tokens meaningful to YOUR environment.
+sensitive_data_indicators:        # regulated / personal data (PII-class)
+  - customer
+  - participant
+  - employee
+  - hr
+  - payroll
+  - identity
+  - sso
+  - okta
+  - entra
+  - directory
+high_value_indicators:            # crown-jewel / material-non-public-class
+  - executive
+  - finance
+  - source-code
+  - repository
+  - secrets
+  - signing
+  - treasury
+  - board
+
+# --- Actors known for data-theft / extortion get a sensitivity multiplier ----
+# Public threat-actor names — a starter list. Edit to your threat model.
+high_impact_actors:
+  - UNC3944
+  - Scattered Spider
+  - ShinyHunters
+  - LAPSUS$
+  - FIN7
+  - Qilin
+  - RansomHub
+  - DragonForce
+
+# --- Catalog diversity -------------------------------------------------------
+diversity:
+  quota: 0.6         # min fraction of top-N that must be NEW (non-EXTENDS) chains
+  max_per_actor: 3   # cap candidates per actor in top-N
